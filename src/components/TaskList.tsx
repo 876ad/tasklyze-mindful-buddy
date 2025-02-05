@@ -1,6 +1,10 @@
 import { useState } from "react";
+import { format, addDays, subDays } from "date-fns";
 import TaskCard from "./TaskCard";
-import { Plus } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
 interface Task {
   id: string;
@@ -16,6 +20,7 @@ const TaskList = () => {
     { id: "3", title: "Schedule weekly meeting", completed: true },
   ]);
 
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [newTask, setNewTask] = useState("");
 
   const handleComplete = (taskId: string) => {
@@ -42,8 +47,58 @@ const TaskList = () => {
     setNewTask("");
   };
 
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
+  const navigateDate = (direction: 'prev' | 'next') => {
+    setSelectedDate(current => 
+      direction === 'prev' ? subDays(current, 1) : addDays(current, 1)
+    );
+  };
+
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-center gap-4 mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigateDate('prev')}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="min-w-[240px] justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {format(selectedDate, "MMMM d, yyyy")}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="center">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateChange}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigateDate('next')}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
       <form onSubmit={handleAddTask} className="flex gap-2">
         <input
           type="text"
